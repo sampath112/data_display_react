@@ -1,50 +1,68 @@
 // src/App.jsx
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 
 export default function App() {
-  // 🌙 Dark Mode State
   const [darkMode, setDarkMode] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check localStorage on load
+  // Load from localStorage
   useEffect(() => {
     const savedMode = localStorage.getItem('darkMode') === 'true';
+    const savedLogin = localStorage.getItem('isLoggedIn') === 'true';
     setDarkMode(savedMode);
+    setIsLoggedIn(savedLogin);
   }, []);
 
-  // Toggle and save to localStorage
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
     localStorage.setItem('darkMode', newMode);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.setItem('isLoggedIn', 'false');
+    // We'll use navigate below
+  };
+
   return (
-    <Router>
+    
       <div style={darkMode ? darkStyles.container : styles.container}>
         <header style={darkMode ? darkStyles.header : styles.header}>
           <h1 style={darkMode ? darkStyles.title : styles.title}>
             User Registration Portal
           </h1>
 
-          {/* Dark Mode Toggle */}
-          <button onClick={toggleDarkMode} style={styles.toggleBtn}>
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
+          <div style={styles.headerRight}>
+            <button onClick={toggleDarkMode} style={styles.toggleBtn}>
+              {darkMode ? '☀️ Light' : '🌙 Dark'}
+            </button>
 
-          {/* Logout Button (if needed) */}
-          {/* You can add isLoggedIn logic here later */}
+            {isLoggedIn && (
+              <button onClick={handleLogout} style={styles.logoutBtn}>
+                🔐 Logout
+              </button>
+            )}
+          </div>
         </header>
 
         <main style={darkMode ? darkStyles.main : styles.main}>
           <Routes>
             <Route path="/" element={<Navigate to="/register" />} />
-            <Route path="/register" element={<RegisterPage onSuccess={() => {}} />} />
-            <Route path="/login" element={<LoginPage onLogin={() => {}} />} />
-            <Route path="/home" element={<HomePage darkMode={darkMode} />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/login"
+              element={<LoginPage onLogin={() => setIsLoggedIn(true)} />}
+            />
+            <Route
+              path="/home"
+              element={isLoggedIn ? <HomePage darkMode={darkMode} /> : <Navigate to="/login" />}
+            />
           </Routes>
         </main>
 
@@ -52,9 +70,9 @@ export default function App() {
           © {new Date().getFullYear()} UserRegPortal
         </footer>
       </div>
-    </Router>
+   
   );
-};
+}
 
 // ✅ Light Mode Styles
 const styles = {
@@ -77,6 +95,11 @@ const styles = {
     fontWeight: 'bold',
     color: '#0056b3',
   },
+  headerRight: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'center',
+  },
   main: {
     flex: 1,
     padding: '2rem',
@@ -98,6 +121,16 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.9rem',
   },
+  logoutBtn: {
+    padding: '8px 12px',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+  },
 };
 
 // ✅ Dark Mode Styles
@@ -106,7 +139,6 @@ const darkStyles = {
     minHeight: '100vh',
     backgroundColor: '#121212',
     color: '#e0e0e0',
-    fontFamily: 'Segoe UI, Arial, sans-serif',
   },
   header: {
     backgroundColor: '#1f1f1f',
@@ -132,5 +164,15 @@ const darkStyles = {
     borderTop: '1px solid #444',
     fontSize: '0.9rem',
     color: '#aaa',
+  },
+  logoutBtn: {
+    padding: '8px 12px',
+    backgroundColor: '#c82333',
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: '500',
   },
 };

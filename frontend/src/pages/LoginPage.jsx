@@ -1,67 +1,17 @@
 // src/pages/LoginPage.jsx
 import { useState } from 'react';
 import { loginUser } from '../services/api';
-import { useNavigate } from 'react-router-dom';  // ← Add this
+import { useNavigate } from 'react-router-dom';
 
-export default function LoginPage({ onLogin }) {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
-  const navigate = useNavigate();  // ← Hook
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await loginUser(formData);
-      onLogin();           // Update state
-      navigate('/home');   // Redirect to home
-    } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
-    }
-  };
-
-  return (
-    <div style={styles.page}>
-      <div style={styles.formContainer}>
-        <h2 style={styles.heading}>🔐 Login</h2>
-        {error && <p style={styles.error}>{error}</p>}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label>Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label>Password</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              style={styles.input}
-            />
-          </div>
-          <button type="submit" style={styles.button}>
-            Login
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// ... styles remain the same
-
+// ✅ Styles defined first
 const styles = {
   page: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '80vh',
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
   },
   formContainer: {
     width: '100%',
@@ -85,6 +35,7 @@ const styles = {
     borderRadius: '4px',
     marginBottom: '1rem',
     fontSize: '0.9rem',
+    textAlign: 'center',
   },
   form: {
     display: 'flex',
@@ -112,4 +63,85 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
   },
+  navLink: {
+    marginTop: '1rem',
+    textAlign: 'center',
+    fontSize: '0.95rem',
+    color: '#555',
+  },
+  link: {
+    color: '#0056b3',
+    textDecoration: 'none',
+    fontWeight: '500',
+  },
 };
+
+// ✅ Correct: Destructure { onLogin }
+export default function LoginPage({ onLogin }) {
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Submitting login:", formData);
+
+    try {
+      const res = await loginUser(formData);
+      console.log("Login success:", res.data);
+
+      // ✅ 1. Save to localStorage
+      localStorage.setItem('isLoggedIn', 'true');
+
+      // ✅ 2. Update parent state
+      if (onLogin) onLogin();
+
+      // ✅ 3. Navigate to home
+      navigate('/home');
+    } catch (err) {
+      console.error("Login error:", err);
+      const errorMsg = err.response?.data?.error || err.message || 'Login failed';
+      setError(errorMsg);
+    }
+  };
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.formContainer}>
+        <h2 style={styles.heading}>🔐 Login</h2>
+        {error && <p style={styles.error}>{error}</p>}
+
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.inputGroup}>
+            <label>Email</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+              style={styles.input}
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label>Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              style={styles.input}
+            />
+          </div>
+          <button type="submit" style={styles.button}>
+            Login
+          </button>
+        </form>
+
+        <p style={styles.navLink}>
+          Don't have an account?{' '}
+          <a href="/register" style={styles.link}>Register here</a>
+        </p>
+      </div>
+    </div>
+  );
+}
